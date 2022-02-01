@@ -42,5 +42,5 @@ setup(
       packages=['SeleniumWireLibrary'],
       install_requires=[
           'robotframework',
-          'selenium-wire'
+          'selenium-wire'       
       ],)

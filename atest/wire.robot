@@ -1,6 +1,5 @@
 *** Settings ***
 Library    SeleniumWireLibrary
-Force Tags    449
 
 *** Variables ***
 &{options}
@@ -12,15 +11,17 @@ Force Tags    449
 *** Test Cases ***
 Network Logs Check
     Launch Web Browser    ${options}
-    # Set Request Scope    ${scopes}
-    Go To URL    https://gmail.com/
 
+    Set Request Scope    ${scopes}
+    
+    Go To URL    https://gmail.com/
+    
     ${requests}=    Get All Requests
     Log    ${requests}
-
+    
     ${request}=    Get Request By Name    accounts.google.com    request
     Log    ${request}
-
+    
     HAR Archive    ${EXECDIR}/test.har
     
     Clear Requests
