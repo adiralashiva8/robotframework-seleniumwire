@@ -1,5 +1,9 @@
 import json
 from seleniumwire import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from robot.libraries.BuiltIn import BuiltIn
 from robot.api.deco import keyword
 from robot.api import logger
@@ -221,3 +225,85 @@ class SeleniumWireLibrary():
                 }
             
             logger.info(result_dict)
+    
+    @keyword
+    def click_element(self, locator):
+        """
+        click on webelement
+
+        |  = Attribute =  |  = Description =  |
+        |  locator        |  Webelement to click.  |
+
+         > Locator should be like <startagie>:<locator>
+         > Uses `driver.find(By.<stratagies>, <locator>)` method internally. 
+         > Refer - https://selenium-python.readthedocs.io/locating-elements.html
+
+        Example:
+
+        |  Click Element   |  xpath://div[text(),'robot']  |
+        |  Click Element   |  id:RobotID  |
+        |  Click Element   |  name:Robot  |
+
+        """
+        locs = locator.split(':', 1)
+        webelement = self.driver.find_element(locs[0].lower(), locs[-1])
+        webelement.click()
+    
+    @keyword
+    def input_text(self, locator, value):
+        """
+        Input text into textbox
+        
+        |  = Attribute =  |  = Description =  |
+        |  locator        |  textbox locator  |
+        |  value        |  value to be enetered in textbox  |
+
+        Example:
+
+        |  Input Text   |  xpath://div[text(),'robot']  |  Demo  |
+        |  Input Text   |  id:RobotID  |  Demo  |
+
+        """
+        locs = locator.split(':', 1)
+        webelement = self.driver.find_element(locs[0].lower(), locs[-1])
+        webelement.send_keys(value)
+    
+    @keyword
+    def select_from_list(self, locator, type, value):
+        """
+        Select value from drop down list
+        
+        |  = Attribute =  |  = Description =  |
+        |  locator        |  drop down locator  |
+        |  type        |  select value based on type. Supported type `index`, `value`, `text`  |
+        |  value       |  value to be selected  |
+
+        Example:
+
+        |  Select From List   |  xpath://div[text(),'robot']  |  index  |  0  |
+        |  Select From List   |  id:RobotID  |  text  |  Robot  |
+
+        """
+        locs = locator.split(':', 1)
+        select = Select(self.driver.find_element(locs[0].lower(), locs[-1]))
+        if type == "index":
+            select.select_by_index(value)
+        elif type == "text":
+            select.select_by_visible_text(value)
+        elif type == "value":
+            select.select_by_value(value)
+        else:
+            pass
+    
+    @keyword
+    def wait_until_page_contains_element(self, locator, timeout=30):
+        """
+        Wait until page contains element.
+
+        |  = Attribute =  |  = Description =  |
+        |  locator        |  wait for specific element to be loaded in page  |
+        |  timeout        |  Wait time before throwing exception  |
+
+        """
+        locs = locator.split(':', 1)
+        element = WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((locs[0].lower(), locs[-1])))
