@@ -1,6 +1,6 @@
 # robotframework-seleniumwire
 
-Wrapper of [python selenium-wire]() to capture browser network using robotframework
+Wrapper of [python selenium-wire](https://github.com/wkeeling/selenium-wire) to capture browser network using robotframework
 
 ![PyPI version](https://badge.fury.io/py/robotframework-seleniumwire.svg)
 [![Downloads](https://pepy.tech/badge/robotframework-seleniumwire)](https://pepy.tech/project/robotframework-seleniumwire)
@@ -11,7 +11,7 @@ Wrapper of [python selenium-wire]() to capture browser network using robotframew
 
  To install robotframework-seleniumwire
  ```
- $ pip install robotframework-seleniumwire==0.1.0
+ $ pip install robotframework-seleniumwire==0.1.1
  ```
  Keyword documentation [link](https://robotframework-seleniumwire.netlify.app/)
 
@@ -26,35 +26,53 @@ Library    SeleniumWireLibrary
 &{options}
 ...    disable_encoding=${True}
 ...    enable_har=${True}
+...    exclude_hosts=['google-analytics.com', 'cdn.sstatic.net']
 
-@{scopes}    .*google.com.*
+@{scopes}    .*stackoverflow.*
 
 *** Test Cases ***
-Capture Google Home Page Network Logs
-    # launch chrome browser
-    Launch Web Browser    ${options}
+Network Logs Check
+    # launch selenium-wire chrome browser
+    Open Browser    ${options}
 
-    # capture requests only matching `@{scopes}` regular expression
+    # set domains to be captured
     Set Request Scope    ${scopes}
     
-    # navigate to home page
-    Go To URL    https://google.com/
-    
-    # log all requests in google home page
-    ${requests}=    Get All Requests
-    Log    ${requests}
-    
-    # get & log request matching specific text 
-    ${request}=    Get Request By Name    accounts.google.com    request
-    Log    ${request}
-    
-    # create HAR file
-    HAR Archive    ${EXECDIR}/test.har
-    
-    # clear all captured requests
+    # navigate to stackoverflow questions page
+    Go To    https://stackoverflow.com/questions
+
+    # get and log all stackoverflow requests
+    ${stack_requests}=    Get All Requests
+    Log    ${stack_requests}
+
+    ${questions_request}=    Get Request By Name    /questions    request
+    Log    ${questions_request}
+
+    # clear stack requests
     Clear Requests
 
-    [Teardown]    Quit Browser
+    # enter some random text
+    Wait Until Page Contains Element    name:q
+    Input Text    name:q    Robotframework
+    Sleep   3s
+
+    # click on about
+    Wait Until Element Is Visible    link text:About
+    Click Element    link text:About
+
+    Wait Until Page Contains Element    xpath://a[text()='Leadership']
+    Wait For Request    /company
+
+    ${about_requests}=    Get All Requests
+    Log    ${about_requests}
+
+    &{request}=    Get Request By Name    /company    request
+    Log    ${request.Method}
+    Log    ${request.Response}
+
+    HAR Archive    ${EXECDIR}/stackoverflow.har
+
+    [Teardown]    Close All Browsers
  ```
 
 ---

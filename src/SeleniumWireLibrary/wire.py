@@ -26,7 +26,7 @@ class SeleniumWireLibrary():
         self.requests = None
     
     @keyword
-    def launch_web_browser(self, options=None):
+    def open_browser(self, options=None):
         """
         Launches chrome browser using selenium wire
 
@@ -34,7 +34,6 @@ class SeleniumWireLibrary():
         |  options        |  seleniumwire_options passed as dictionary.  |
         
         Supported options - https://github.com/wkeeling/selenium-wire?ref=https://githubhelp.com#all-options  |
-        
         
         Example:
         
@@ -47,9 +46,10 @@ class SeleniumWireLibrary():
         
         """
         self.driver = webdriver.Chrome(seleniumwire_options=options)
-    
+        self.driver.maximize_window()
+
     @keyword
-    def go_to_url(self, url):
+    def go_to(self, url):
         """
         Navigates to mentioned url in launched chrome browser
         
@@ -59,11 +59,18 @@ class SeleniumWireLibrary():
         self.driver.get(url)
 
     @keyword
-    def quit_browser(self):
+    def close_all_browsers(self):
         """
         Close all browsers. Uses `driver.quit()` internally
         """
         self.driver.quit()
+    
+    @keyword
+    def close_browser(self):
+        """
+        Close current browser.
+        """
+        self.driver.close()
     
     @keyword
     def get_all_requests(self):
@@ -92,7 +99,7 @@ class SeleniumWireLibrary():
         return self.requests[int(index)]
     
     @keyword
-    def wait_for_request(pattern, timeout=10):
+    def wait_for_request(self, pattern, timeout=10):
         """
         Keyword will wait until it sees a request matching a `pattern`
          - `pattern` can be a simple substring or a regular expression.
@@ -162,8 +169,8 @@ class SeleniumWireLibrary():
                 if type == "response":
                     if request.response:
                         result_dict = {
-                            "Request URL" : request.url,
-                            "Status Code" : request.response.status_code,
+                            "RequestURL" : request.url,
+                            "StatusCode" : request.response.status_code,
                             "Reason" : request.response.reason,
                             "Header" : request.response.headers,
                             "Host" : request.headers['Host'],
@@ -173,9 +180,9 @@ class SeleniumWireLibrary():
                 else:
                     result_dict = {
                         "Method" : request.method,
-                        "Request URL" : request.url,
+                        "RequestURL" : request.url,
                         "Path" : request.path,
-                        "Query String" : request.querystring,
+                        "QueryString" : request.querystring,
                         "Params" : request.params,                    
                         "Headers" : request.headers,
                         "Host" : request.headers['Host'],
@@ -202,8 +209,8 @@ class SeleniumWireLibrary():
             if type == "response":
                 if request.response:
                     result_dict = {
-                        "Request URL" : request.url,
-                        "Status Code" : request.response.status_code,
+                        "RequestURL" : request.url,
+                        "StatusCode" : request.response.status_code,
                         "Reason" : request.response.reason,
                         "Header" : request.response.headers,
                         "Host" : request.headers['Host'],
@@ -213,9 +220,9 @@ class SeleniumWireLibrary():
             else:
                 result_dict = {
                     "Method" : request.method,
-                    "Request URL" : request.url,
+                    "RequestURL" : request.url,
                     "Path" : request.path,
-                    "Query String" : request.querystring,
+                    "QueryString" : request.querystring,
                     "Params" : request.params,                    
                     "Headers" : request.headers,
                     "Host" : request.headers['Host'],
@@ -234,9 +241,9 @@ class SeleniumWireLibrary():
         |  = Attribute =  |  = Description =  |
         |  locator        |  Webelement to click.  |
 
-         > Locator should be like <startagie>:<locator>
-         > Uses `driver.find(By.<stratagies>, <locator>)` method internally. 
-         > Refer - https://selenium-python.readthedocs.io/locating-elements.html
+        - Locator should be like <startagie>:<locator>
+        - Uses `driver.find(By.<stratagies>, <locator>)` method internally. 
+        - Refer - https://selenium-python.readthedocs.io/locating-elements.html
 
         Example:
 
@@ -307,3 +314,67 @@ class SeleniumWireLibrary():
         """
         locs = locator.split(':', 1)
         element = WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((locs[0].lower(), locs[-1])))
+    
+    @keyword
+    def wait_until_element_is_visible(self, locator, timeout=30):
+        """
+        Wait until element is visible in page.
+
+        |  = Attribute =  |  = Description =  |
+        |  locator        |  wait for specific element to be visible in page  |
+        |  timeout        |  Wait time before throwing exception  |
+
+        """
+        locs = locator.split(':', 1)
+        element = WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((locs[0].lower(), locs[-1])))
+    
+    @keyword
+    def wait_until_element_is_not_visible(self, locator, timeout=30):
+        """
+        Wait until element is not visible in page.
+
+        |  = Attribute =  |  = Description =  |
+        |  locator        |  wait for specific element to be not visible in page  |
+        |  timeout        |  Wait time before throwing exception  |
+
+        """
+        locs = locator.split(':', 1)
+        element = WebDriverWait(self.driver, timeout).until(EC.invisibility_of_element_located((locs[0].lower(), locs[-1])))
+
+    @keyword
+    def switch_to_window(self, index=0):
+        """
+        Switches to browser window by name
+        
+        |  = Attribute =  |  = Description =  |
+        |  index        |  index of window  |
+
+        Example:
+
+        |  Switch To Window   |  1  |
+
+        """
+        self.driver.switch_to_window(self.driver.window_handles[int(index)])
+    
+    @keyword
+    def switch_to_iframe(self, locator):
+        """
+        Switches to iframe
+        
+        |  = Attribute =  |  = Description =  |
+        |  locator        |  iframe locator  |
+
+        Example:
+
+        |  Switch To Frame   |  xpath://div[@id='iframe']  |
+
+        """
+        self.driver.switch_to_frame(self.driver.find_element(locs[0].lower(), locs[-1]))
+    
+    @keyword
+    def exit_iframe(self):
+        """
+        Exits iframe
+
+        """
+        self.driver.switch_to_default_content(0)
